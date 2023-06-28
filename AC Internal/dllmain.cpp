@@ -19,7 +19,8 @@ void hackThread(HMODULE hModule) {
 		return;
 	}
 	
-	bool bHealth, bShield, bAmmo = false;
+	bool bHealth, bShield, bMagnet, bAmmo;
+	bHealth = bShield = bMagnet = bAmmo = false;
 
 	while (true)
 	{
@@ -36,6 +37,17 @@ void hackThread(HMODULE hModule) {
 		}
 
 		Player* me = (Player*)ptrLocalPlayer;
+
+		if (bHealth) {
+			me->health = 1337;
+		}
+		if (bShield) {
+			me->shield = 1337;
+		}
+		if (bAmmo) {
+			me->ammo = 1337;
+		}
+
 		int iEntityListLength = *(int*)(moduleBase + dwEntityListLength);
 
 		if (iEntityListLength < 1) {
@@ -49,13 +61,16 @@ void hackThread(HMODULE hModule) {
 			uintptr_t ptrEntity = *(uintptr_t*)(ptrEntityList + (i * 4));
 			Player* player = (Player*)ptrEntity;
 
-			if (!player || player->teamId == me->teamId) {
+			if (!player || !me->isEnemy(player)) {
 				continue;
 			}
 
-			player->position.x = me->position.x + 5;
-			player->position.y = me->position.y;
-			player->position.z = me->position.z;
+			if (bMagnet) {
+				player->position.x = me->position.x + 5;
+				player->position.y = me->position.y + 5;
+				player->position.z = me->position.z;
+			}
+			
 		}
 	}
 	
