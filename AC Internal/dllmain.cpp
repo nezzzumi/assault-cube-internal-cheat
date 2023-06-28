@@ -18,7 +18,7 @@ void hackThread(HMODULE hModule) {
 		std::cout << moduleName << " not found!" << std::endl;
 		return;
 	}
-	
+
 	bool bHealth, bShield, bMagnet, bAmmo;
 	bHealth = bShield = bMagnet = bAmmo = false;
 
@@ -29,7 +29,7 @@ void hackThread(HMODULE hModule) {
 		if (GetAsyncKeyState(VK_END)) {
 			break;
 		}
-		
+
 		uintptr_t ptrLocalPlayer = *(uintptr_t*)(moduleBase + dwLocalPlayer);
 
 		if (ptrLocalPlayer == NULL) {
@@ -45,7 +45,7 @@ void hackThread(HMODULE hModule) {
 			me->shield = 1337;
 		}
 		if (bAmmo) {
-			me->ammo = 1337;
+			me->currentWeapon->clip->ammo = 1337;
 		}
 
 		int iEntityListLength = *(int*)(moduleBase + dwEntityListLength);
@@ -70,16 +70,16 @@ void hackThread(HMODULE hModule) {
 				player->position.y = me->position.y + 5;
 				player->position.z = me->position.z;
 			}
-			
+
 		}
 	}
-	
+
 	if (f != NULL) {
 		fclose(f);
 	}
 
 	FreeConsole();
-	FreeLibraryAndExitThread(hModule, 0);	
+	FreeLibraryAndExitThread(hModule, 0);
 }
 
 
@@ -94,7 +94,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 		Beep(500, 500);
 		CreateThread(0, 0, (LPTHREAD_START_ROUTINE)hackThread, hModule, 0, 0);
 		break;
-	
+
 	case DLL_PROCESS_DETACH:
 		if (lpReserved != nullptr)
 		{
