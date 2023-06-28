@@ -7,6 +7,9 @@ struct Vector2 { float x, y; };
 class Player
 {
 public:
+	bool isEnemy(Player *player) {
+		return this->teamId != player->teamId;
+	}
 	char pad_0000[52]; //0x0000
 	Vector3 position; //0x0034
 	Vector3 angle; //0x0040
