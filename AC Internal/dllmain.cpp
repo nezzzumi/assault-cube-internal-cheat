@@ -71,19 +71,21 @@ void unhookDisplayNametags() {
 }
 
 void hackThread(HMODULE hModule) {
-	/*AllocConsole();
-	FILE* f;
-	freopen_s(&f, "CONOUT$", "w", stdout);*/
-
 	if (!moduleBase) {
-		std::cout << moduleName << " not found!" << std::endl;
+		MessageBox(0, L"Module not found!", L"Warning", MB_OK | MB_ICONWARNING);
 		return;
 	}
+
+	#ifdef _DEBUG
+	AllocConsole();
+	FILE* f;
+	freopen_s(&f, "CONOUT$", "w", stdout);
+	#endif // DEBUG
 
 	bTrigger = bHealth = bShield = bMagnet = bAmmo = true;
 	
 	hookDisplayNametags();
-
+	
 	while (true)
 	{
 		Sleep(100);
@@ -137,11 +139,14 @@ void hackThread(HMODULE hModule) {
 		}
 	}
 
-	/*if (f != NULL) {
+	#ifdef _DEBUG
+	if (f != NULL) {
 		fclose(f);
 	}
 
-	FreeConsole();*/
+	FreeConsole();
+	#endif // DEBUG
+	
 	FreeLibraryAndExitThread(hModule, 0);
 }
 
