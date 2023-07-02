@@ -7,5 +7,5 @@
 - [x] Infinite Ammo (need improvement)
 - [x] TriggerBot
 - [ ] ESP
-- [ ] Aimbot
+- [x] Aimbot
 - [ ] No recoil

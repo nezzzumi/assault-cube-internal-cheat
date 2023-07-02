@@ -3,7 +3,7 @@
 
 struct Vector3 { float x, y, z; };
 struct Vector2 { float x, y; };
-
+#define M_PI 3.14159265358979323846
 
 class Player
 {
@@ -25,7 +25,9 @@ public:
 	char name[16]; //0x0225
 	char pad_0235[247]; //0x0235
 	int32_t teamId; //0x032C
-	char pad_0330[68]; //0x0330
+	char pad_0330[8]; //0x0330
+	bool isDead; //0x0338
+	char pad_0339[59]; //0x0339
 	class Weapon* currentWeapon; //0x0374
 	char pad_0378[288]; //0x0378
 }; //Size: 0x0498
