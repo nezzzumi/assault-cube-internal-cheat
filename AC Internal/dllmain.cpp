@@ -6,21 +6,83 @@
 
 
 LPCWSTR moduleName = L"ac_client.exe";
+DWORD moduleBase = (DWORD)GetModuleHandle(moduleName);
+
+int isAimingEnemy;
+bool wasFiring = false;
+uintptr_t originalReturnAddress, originalCallAddress;
+INPUT input;
+
+bool bHealth, bShield, bMagnet, bAmmo, bTrigger;
+
+__declspec(naked) void triggerBotCodeCave() {
+	originalCallAddress = moduleBase + dwDisplayNametagOriginalCall;
+	originalReturnAddress = moduleBase + dwDisplayNametagReturn;
+
+	__asm {
+		call originalCallAddress;
+		pushad
+		mov isAimingEnemy, eax
+	} 
+
+	if (bTrigger) {
+		input = { 0 };
+
+		if (isAimingEnemy) {
+			input.type = INPUT_MOUSE;
+			input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+			SendInput(1, &input, sizeof(INPUT));
+			wasFiring = true;
+		}
+		else if(wasFiring) {
+			input.type = INPUT_MOUSE;
+			input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
+			SendInput(1, &input, sizeof(INPUT));
+			wasFiring = false;
+		}
+	}
+
+	__asm {
+		popad
+		jmp originalReturnAddress
+	}
+}
+
+
+void hookDisplayNametags() {
+	unsigned char* triggerHookLocation = (unsigned char*)(dwDisplayNametag + moduleBase);
+	DWORD old;
+	VirtualProtect((void*)triggerHookLocation, 5, PAGE_EXECUTE_READWRITE, &old);
+
+	// jmp opcode
+	*triggerHookLocation = 0xe9;
+	// code cave address (new_location - original_location + 5)
+	*(DWORD*)(triggerHookLocation + 1) = (DWORD)&triggerBotCodeCave - ((DWORD)triggerHookLocation + 5);
+}
+
+void unhookDisplayNametags() {
+	unsigned char* triggerHookLocation = (unsigned char*)(dwDisplayNametag + moduleBase);
+	
+	*triggerHookLocation = 0xe8;
+	*(unsigned char*)(triggerHookLocation + 1) = 0x1e;
+	*(unsigned char*)(triggerHookLocation + 2) = 0x5a;
+	*(unsigned char*)(triggerHookLocation + 3) = 0x05;
+	*(unsigned char*)(triggerHookLocation + 4) = 0x00;
+}
 
 void hackThread(HMODULE hModule) {
-	AllocConsole();
+	/*AllocConsole();
 	FILE* f;
-	freopen_s(&f, "CONOUT$", "w", stdout);
-
-	DWORD moduleBase = (DWORD)GetModuleHandle(moduleName);
+	freopen_s(&f, "CONOUT$", "w", stdout);*/
 
 	if (!moduleBase) {
 		std::cout << moduleName << " not found!" << std::endl;
 		return;
 	}
 
-	bool bHealth, bShield, bMagnet, bAmmo;
-	bHealth = bShield = bMagnet = bAmmo = false;
+	bTrigger = bHealth = bShield = bMagnet = bAmmo = true;
+	
+	hookDisplayNametags();
 
 	while (true)
 	{
@@ -41,9 +103,11 @@ void hackThread(HMODULE hModule) {
 		if (bHealth) {
 			me->health = 1337;
 		}
+
 		if (bShield) {
 			me->shield = 1337;
 		}
+
 		if (bAmmo) {
 			me->currentWeapon->clip->ammo = 1337;
 		}
@@ -70,15 +134,14 @@ void hackThread(HMODULE hModule) {
 				player->position.y = me->position.y + 5;
 				player->position.z = me->position.z;
 			}
-
 		}
 	}
 
-	if (f != NULL) {
+	/*if (f != NULL) {
 		fclose(f);
 	}
 
-	FreeConsole();
+	FreeConsole();*/
 	FreeLibraryAndExitThread(hModule, 0);
 }
 
@@ -100,6 +163,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 		{
 			break; // do not do cleanup if process termination scenario
 		}
+
+		unhookDisplayNametags();
 
 		Beep(500, 250);
 		Beep(500, 250);
