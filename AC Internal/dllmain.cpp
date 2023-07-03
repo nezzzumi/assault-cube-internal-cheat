@@ -132,7 +132,7 @@ void hackThread(HMODULE hModule) {
 			uintptr_t ptrEntity = *(uintptr_t*)(ptrEntityList + (i * 4));
 			Player* player = (Player*)ptrEntity;
 
-			if (!player || !me->isEnemy(player) || player->isDead) {
+			if (!player || player->isDead) {
 				continue;
 			}
 
