@@ -14,7 +14,7 @@ bool wasFiring = false;
 uintptr_t originalReturnAddress, originalCallAddress;
 INPUT input;
 
-bool bHealth, bShield, bMagnet, bAmmo, bTrigger, bAimbot;
+bool bHealth, bShield, bMagnet, bAmmo, bTrigger, bAimbot, bNoRecoil;
 
 __declspec(naked) void triggerBotCodeCave() {
 	originalCallAddress = moduleBase + dwDisplayNametagOriginalCall;
@@ -71,6 +71,16 @@ void unhookDisplayNametags() {
 	*(unsigned char*)(triggerHookLocation + 4) = 0x00;
 }
 
+void patchRecoil() {
+	unsigned char* recoilInstruction = (unsigned char*)(moduleBase + dwRecoilInstruction);
+	DWORD old;
+	VirtualProtect((void*)recoilInstruction, 3, PAGE_EXECUTE_READWRITE, &old);
+	
+	*recoilInstruction = 0xdd;
+	*(recoilInstruction + 1) = 0xd8;
+	*(recoilInstruction + 2) = 0x90;
+}
+
 void hackThread(HMODULE hModule) {
 	if (!moduleBase) {
 		MessageBox(0, L"Module not found!", L"Warning", MB_OK | MB_ICONWARNING);
@@ -83,9 +93,10 @@ void hackThread(HMODULE hModule) {
 	freopen_s(&f, "CONOUT$", "w", stdout);
 	#endif // DEBUG
 
-	bTrigger = bHealth = bShield = bMagnet = bAmmo = bAimbot = false;
-	bAimbot = true;
+	bTrigger = bHealth = bShield = bMagnet = bAmmo = bAimbot = bNoRecoil = false;
+
 	hookDisplayNametags();
+	patchRecoil();
 	
 	while (true)
 	{
