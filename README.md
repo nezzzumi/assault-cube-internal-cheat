@@ -4,8 +4,8 @@
 - [x] Magnet
 - [x] Infinite Health
 - [x] Infinite Shield
-- [x] Infinite Ammo (need improvement)
+- [x] Infinite Ammo
 - [x] TriggerBot
 - [ ] ESP
 - [x] Aimbot
-- [ ] No recoil
+- [x] No recoil
