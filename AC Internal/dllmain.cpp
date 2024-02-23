@@ -5,6 +5,11 @@
 #include "offsets.h"
 #include <math.h>
 #include "functions.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_opengl2.h"
+#include "Memory.h"
+#include "opengl.h"
 
 LPCWSTR moduleName = L"ac_client.exe";
 DWORD moduleBase = (DWORD)GetModuleHandle(moduleName);
@@ -15,6 +20,7 @@ uintptr_t originalReturnAddress, originalCallAddress;
 INPUT input;
 
 bool bHealth, bShield, bMagnet, bAmmo, bTrigger, bAimbot, bNoRecoil;
+
 
 __declspec(naked) void triggerBotCodeCave() {
 	originalCallAddress = moduleBase + dwDisplayNametagOriginalCall;
@@ -95,100 +101,117 @@ void hackThread(HMODULE hModule) {
 
 	bTrigger = bHealth = bShield = bMagnet = bAmmo = bAimbot = bNoRecoil = false;
 
-	hookDisplayNametags();
-	patchRecoil();
+	/*hookDisplayNametags();
+	patchRecoil();*/
 	
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui_ImplWin32_Init(FindWindowA(NULL, "AssaultCube"));
+	ImGui_ImplOpenGL2_Init();
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.WindowMinSize = ImVec2(400, 275);
+	style.WindowRounding = 3.0f;
+	style.ChildRounding = 3.0f;
+	style.FrameRounding = 3.0f;
+	style.GrabRounding = 3.0f;
+	bool sla = true;
+	
+	OpenGL::Hook();
+
 	while (true)
 	{
-		Sleep(1);
-
 		if (GetAsyncKeyState(VK_END)) {
+			OpenGL::UnHook();
 			break;
 		}
 
-		uintptr_t ptrLocalPlayer = *(uintptr_t*)(moduleBase + dwLocalPlayer);
+		//uintptr_t ptrLocalPlayer = *(uintptr_t*)(moduleBase + dwLocalPlayer);
 
-		if (ptrLocalPlayer == NULL) {
-			continue;
-		}
+		//if (ptrLocalPlayer == NULL) {
+		//	continue;
+		//}
 
-		Player* me = (Player*)ptrLocalPlayer;
+		//Player* me = (Player*)ptrLocalPlayer;
 
-		if (bHealth) {
-			me->health = 1337;
-		}
+		//if (bHealth) {
+		//	me->health = 1337;
+		//}
 
-		if (bShield) {
-			me->shield = 1337;
-		}
+		//if (bShield) {
+		//	me->shield = 1337;
+		//}
 
-		if (bAmmo) {
-			me->currentWeapon->clip->ammo = 1337;
-		}
+		//if (bAmmo) {
+		//	me->currentWeapon->clip->ammo = 1337;
+		//}
 
-		int iEntityListLength = *(int*)(moduleBase + dwEntityListLength);
+		//int iEntityListLength = *(int*)(moduleBase + dwEntityListLength);
 
-		if (iEntityListLength < 1) {
-			continue;
-		}
+		//if (iEntityListLength < 1) {
+		//	continue;
+		//}
 
-		uintptr_t ptrEntityList = *(uintptr_t*)(moduleBase + dwEntityList);
+		//uintptr_t ptrEntityList = *(uintptr_t*)(moduleBase + dwEntityList);
 
-		float closestPlayer = -1.0;
-		float closestYaw = 0;
-		float closestPitch = 0;
+		//float closestPlayer = -1.0;
+		//float closestYaw = 0;
+		//float closestPitch = 0;
 
-		for (size_t i = 1; i < iEntityListLength; i++)
-		{
-			uintptr_t ptrEntity = *(uintptr_t*)(ptrEntityList + (i * 4));
-			Player* player = (Player*)ptrEntity;
+		//for (size_t i = 1; i < iEntityListLength; i++)
+		//{
+		//	uintptr_t ptrEntity = *(uintptr_t*)(ptrEntityList + (i * 4));
+		//	Player* player = (Player*)ptrEntity;
 
-			if (!player || player->isDead) {
-				continue;
-			}
+		//	if (!player || player->isDead) {
+		//		continue;
+		//	}
 
-			if (bAimbot) {
-				// thanks https://gamehacking.academy/lesson/5/6
-				float absPosX = player->position.x - me->position.x;
-				float absPosY = player->position.y - me->position.y;
+		//	if (bAimbot) {
+		//		// thanks https://gamehacking.academy/lesson/5/6
+		//		float absPosX = player->position.x - me->position.x;
+		//		float absPosY = player->position.y - me->position.y;
 
-				float distance = euclidean_distance(absPosX, absPosY);
+		//		float distance = euclidean_distance(absPosX, absPosY);
 
-				if (closestPlayer == -1.0 || distance < closestPlayer) {
-					closestPlayer = distance;
+		//		if (closestPlayer == -1.0 || distance < closestPlayer) {
+		//			closestPlayer = distance;
 
-					float azimuthXY = atan2f(absPosY, absPosX);
-					float yaw = azimuthXY * (180.0 / M_PI);
+		//			float azimuthXY = atan2f(absPosY, absPosX);
+		//			float yaw = azimuthXY * (180.0 / M_PI);
 
-					if (absPosY < 0) {
-						absPosY *= -1;
-					}
+		//			if (absPosY < 0) {
+		//				absPosY *= -1;
+		//			}
 
-					if (absPosY < 5) {
-						if (absPosX < 0) {
-							absPosX *= -1;
-						}
-						absPosY = absPosX;
-					}
+		//			if (absPosY < 5) {
+		//				if (absPosX < 0) {
+		//					absPosX *= -1;
+		//				}
+		//				absPosY = absPosX;
+		//			}
 
-					float absPosZ = player->position.z - me->position.z;
-					float azimuthZ = atan2f(absPosZ, absPosY);
-					float pitch = azimuthZ * (180 / M_PI);
+		//			float absPosZ = player->position.z - me->position.z;
+		//			float azimuthZ = atan2f(absPosZ, absPosY);
+		//			float pitch = azimuthZ * (180 / M_PI);
 
-					closestYaw = yaw + 90;
-					closestPitch = pitch;
-				}
-			}
+		//			closestYaw = yaw + 90;
+		//			closestPitch = pitch;
+		//		}
+		//	}
 
-			if (bMagnet) {
-				player->position.x = me->position.x + 5;
-				player->position.y = me->position.y + 5;
-				player->position.z = me->position.z;
-			}
-		}
+		//	if (bMagnet) {
+		//		player->position.x = me->position.x + 5;
+		//		player->position.y = me->position.y + 5;
+		//		player->position.z = me->position.z;
+		//	}
+		//}
 
-		me->angle.x = closestYaw;
-		me->angle.y = closestPitch;
+		//me->angle.x = closestYaw;
+		//me->angle.y = closestPitch;
 	}
 
 	#ifdef _DEBUG
@@ -221,7 +244,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 			break; // do not do cleanup if process termination scenario
 		}
 
-		unhookDisplayNametags();
+		//unhookDisplayNametags();
 
 		Beep(500, 250);
 		Beep(500, 250);
