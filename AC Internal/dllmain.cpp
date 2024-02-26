@@ -5,22 +5,21 @@
 #include "offsets.h"
 #include <math.h>
 #include "functions.h"
-#include "imgui.h"
-#include "imgui_impl_win32.h"
-#include "imgui_impl_opengl2.h"
 #include "Memory.h"
 #include "opengl.h"
+#include "Menu.h"
 
 LPCWSTR moduleName = L"ac_client.exe";
 DWORD moduleBase = (DWORD)GetModuleHandle(moduleName);
 
 int isAimingEnemy;
 bool wasFiring = false;
-uintptr_t originalReturnAddress, originalCallAddress;
-INPUT input;
 
 bool bHealth, bShield, bMagnet, bAmmo, bTrigger, bAimbot, bNoRecoil;
 
+
+uintptr_t originalReturnAddress, originalCallAddress;
+INPUT input;
 
 __declspec(naked) void triggerBotCodeCave() {
 	originalCallAddress = moduleBase + dwDisplayNametagOriginalCall;
@@ -103,29 +102,15 @@ void hackThread(HMODULE hModule) {
 
 	/*hookDisplayNametags();
 	patchRecoil();*/
-	
 
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	ImGui_ImplWin32_Init(FindWindowA(NULL, "AssaultCube"));
-	ImGui_ImplOpenGL2_Init();
-	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsClassic();
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.WindowMinSize = ImVec2(400, 275);
-	style.WindowRounding = 3.0f;
-	style.ChildRounding = 3.0f;
-	style.FrameRounding = 3.0f;
-	style.GrabRounding = 3.0f;
-	bool sla = true;
-	
+	Menu::Init();
 	OpenGL::Hook();
 
 	while (true)
 	{
 		if (GetAsyncKeyState(VK_END)) {
 			OpenGL::UnHook();
+			Menu::End();
 			break;
 		}
 

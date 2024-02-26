@@ -3,14 +3,11 @@
 #include <Windows.h>
 #include "Memory.h"
 #include <iostream>
-#include "imgui.h"
-#include "imgui_impl_win32.h"
-#include "imgui_impl_opengl2.h"
+#include "Menu.h"
 
 namespace OpenGL {
 	DWORD returnAddress;
 	DWORD oldPerm;
-	bool sla;
 
 	DWORD GetwglSwapBuffersAddress() {
 		HMODULE openglBaseAddress = GetModuleHandle(L"opengl32.dll");
@@ -24,18 +21,7 @@ namespace OpenGL {
 	}
 
 	void Draw() {
-		ImGui_ImplOpenGL2_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
-
-		ImGui::Begin("DearCube", &sla, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);
-		ImGui::BeginTabBar("oi");
-		ImGui::EndTabBar();
-		ImGui::End();
-
-		ImGui::EndFrame();
-		ImGui::Render();
-		ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+		Menu::Draw();
 	}
 
 	__declspec(naked) void wglSwapBuffersCodeCave() {
@@ -46,7 +32,7 @@ namespace OpenGL {
 			popad
 		}
 
-		OpenGL::Draw(); // TODO: create a new file 'Menu.cpp'?
+		OpenGL::Draw();
 
 		_asm {
 			mov edi, edi
@@ -58,8 +44,6 @@ namespace OpenGL {
 
 	void Hook() {
 		oldPerm = Memory::CodeCave(GetwglSwapBuffersAddress(), (DWORD)&wglSwapBuffersCodeCave, 5);
-		std::cout << std::hex << GetwglSwapBuffersAddress() << std::endl;
-		std::cout << std::hex << wglSwapBuffersCodeCave << std::endl;
 	}
 
 	void UnHook() {

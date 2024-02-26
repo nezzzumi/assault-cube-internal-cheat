@@ -153,6 +153,7 @@
     <ClInclude Include="imstb_rectpack.h" />
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
+    <ClInclude Include="Menu.h" />
     <ClInclude Include="offsets.h" />
     <ClInclude Include="opengl.h" />
     <ClInclude Include="pch.h" />
@@ -166,8 +167,9 @@
     <ClCompile Include="imgui_impl_win32.cpp" />
     <ClCompile Include="imgui_tables.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
-    <ClCompile Include="Memory.cpp" />
-    <ClCompile Include="Memory.h" />
+    <ClCompile Include="memory.cpp" />
+    <ClInclude Include="memory.h" />
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="opengl.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
