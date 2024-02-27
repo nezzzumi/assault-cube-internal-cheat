@@ -11,9 +11,13 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 namespace Menu {
 	bool noRecoil = true;
-	bool isOpened = false;
+	bool isOpened = true;
 	HWND gameHwnd = FindWindowA(NULL, "AssaultCube");
 	LONG_PTR originalWndProc;
+
+	typedef int(__cdecl* SDL_SetRelativeMouseMode)(bool enabled);
+	SDL_SetRelativeMouseMode _SDL_SetRelativeMouseMode = (SDL_SetRelativeMouseMode)GetProcAddress(GetModuleHandle(L"SDL2.dll"), "SDL_SetRelativeMouseMode");
+	
 
 	bool Toggle() {
 		Menu::isOpened = !Menu::isOpened;
@@ -23,6 +27,7 @@ namespace Menu {
 
 	LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
+
 		if (msg == WM_KEYDOWN && wParam == VK_INSERT) {
 			Menu::Toggle();
 
@@ -30,6 +35,7 @@ namespace Menu {
 		}
 
 		if (Menu::isOpened) {
+
 			ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
 
 			return true;
@@ -54,9 +60,11 @@ namespace Menu {
 
 	void Draw() {
 		if (!isOpened) {
+			_SDL_SetRelativeMouseMode(true);
 			return;
 		}
 
+		_SDL_SetRelativeMouseMode(false);
 		ImGui_ImplOpenGL2_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
@@ -64,26 +72,12 @@ namespace Menu {
 		if (!ImGui::Begin("Cheat", NULL, ImGuiWindowFlags_NoCollapse)) {
 			ImGui::End();
 			return;
-		}
-
-		if (ImGui::BeginMenuBar()) {
-			if (ImGui::BeginMenu("oi")) {
-				ImGui::SeparatorText("Mini apps");
-				ImGui::MenuItem("Main menu bar", NULL, &noRecoil);
-				ImGui::Text("dear imgui says hello! (%s) (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
-
-				ImGui::EndMenu();
-			}
-			ImGui::EndMenuBar();
-		}
-		ImGui::Text("dear imgui says hello! (%s) (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
-
-		ImGui::End();
+		}		
 
 		ImGui::GetIO().MouseDrawCursor = isOpened;
-		//ImGui::GetIO().WantCaptureMouse = isOpened;
+		ImGui::GetIO().WantCaptureMouse = isOpened;
 
-		ImGui::EndFrame();
+		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 	}
