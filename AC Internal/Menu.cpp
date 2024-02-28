@@ -10,14 +10,33 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace Menu {
-	bool noRecoil = true;
+	namespace Options {
+		namespace Aimbot {
+			bool aimbot = false;
+			bool trigger = false;
+		}
+		namespace Player {
+			bool godMode = false;
+			bool unlimitedHealth = false;
+			bool unlimitedShield = false;
+		}
+		namespace Weapon {
+			bool noRecoil = false;
+			bool unlimitedAmmo = false;
+		}
+		namespace Misc {
+			bool magnet = false;
+		}
+	}
+
 	bool isOpened = true;
+
 	HWND gameHwnd = FindWindowA(NULL, "AssaultCube");
 	LONG_PTR originalWndProc;
 
 	typedef int(__cdecl* SDL_SetRelativeMouseMode)(bool enabled);
 	SDL_SetRelativeMouseMode _SDL_SetRelativeMouseMode = (SDL_SetRelativeMouseMode)GetProcAddress(GetModuleHandle(L"SDL2.dll"), "SDL_SetRelativeMouseMode");
-	
+
 
 	bool Toggle() {
 		Menu::isOpened = !Menu::isOpened;
@@ -69,13 +88,59 @@ namespace Menu {
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		if (!ImGui::Begin("Cheat", NULL, ImGuiWindowFlags_NoCollapse)) {
+		if (!ImGui::Begin("Coded by nezzzumi", NULL, ImGuiWindowFlags_NoCollapse)) {
 			ImGui::End();
 			return;
-		}		
+		}
 
 		ImGui::GetIO().MouseDrawCursor = isOpened;
 		ImGui::GetIO().WantCaptureMouse = isOpened;
+		if (ImGui::BeginTabBar("Options")) {
+			if (ImGui::BeginTabItem("Aimbot"))
+			{
+				if (ImGui::BeginTable("split", 3))
+				{
+					ImGui::TableNextColumn(); ImGui::Checkbox("Aimbot", &Menu::Options::Aimbot::aimbot);
+					ImGui::TableNextColumn(); ImGui::Checkbox("Trigger", &Menu::Options::Aimbot::trigger);
+					ImGui::EndTable();
+				}
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("Player"))
+			{
+				if (ImGui::BeginTable("split", 3))
+				{
+					ImGui::TableNextColumn(); ImGui::Checkbox("God Mode", &Menu::Options::Player::godMode);
+					ImGui::EndTable();
+				}
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("Weapon"))
+			{
+				if (ImGui::BeginTable("split", 3))
+				{
+					ImGui::TableNextColumn(); ImGui::Checkbox("No Recoil", &Menu::Options::Weapon::noRecoil);
+					ImGui::TableNextColumn(); ImGui::Checkbox("Unlimited Ammo", &Menu::Options::Weapon::unlimitedAmmo);
+					ImGui::EndTable();
+				}
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("Misc")) {
+				if (ImGui::BeginTable("split", 3))
+				{
+					ImGui::TableNextColumn(); ImGui::Checkbox("Magnet", &Menu::Options::Misc::magnet);
+					ImGui::EndTable();
+				}
+				ImGui::EndTabItem();
+			}
+			if (ImGui::BeginTabItem("About")) {
+				if (ImGui::Button("Github Repository")) {
+					ShellExecute(NULL, L"OPEN", L"https://github.com/nezzzumi/assault-cube-internal-cheat", NULL, NULL, SW_SHOWDEFAULT);
+				}
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
 
 		ImGui::End();
 		ImGui::Render();
