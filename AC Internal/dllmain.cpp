@@ -114,26 +114,25 @@ void hackThread(HMODULE hModule) {
 			break;
 		}
 
-		//uintptr_t ptrLocalPlayer = *(uintptr_t*)(moduleBase + dwLocalPlayer);
+		uintptr_t ptrLocalPlayer = *(uintptr_t*)(moduleBase + dwLocalPlayer);
+		if (ptrLocalPlayer == NULL) {
+			continue;
+		} 
 
-		//if (ptrLocalPlayer == NULL) {
-		//	continue;
-		//}
+		Player* me = (Player*)ptrLocalPlayer;
 
-		//Player* me = (Player*)ptrLocalPlayer;
+		if (Menu::Options::Player::godMode) {
+			me->health = 1337;
+			me->shield = 1337;
+		}
 
-		//if (bHealth) {
-		//	me->health = 1337;
-		//}
+		if (Menu::Options::Weapon::unlimitedAmmo) {
+			me->currentWeapon->currentMagazine->ammo = 1337;
+			me->currentWeapon->magazines->ammo = 1337;
+			me->grenades = 1337;
+		}
 
-		//if (bShield) {
-		//	me->shield = 1337;
-		//}
-
-		//if (bAmmo) {
-		//	me->currentWeapon->clip->ammo = 1337;
-		//}
-
+		// TODO: entityList
 		//int iEntityListLength = *(int*)(moduleBase + dwEntityListLength);
 
 		//if (iEntityListLength < 1) {
