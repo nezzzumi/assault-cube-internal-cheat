@@ -45,7 +45,9 @@ public:
 	char pad_00F4[76]; //0x00F4
 	int32_t ammo; //0x0140
 	int32_t grenades; //0x0144
-	char pad_0148[540]; //0x0148
+	char pad_0148[464]; //0x0148
+	bool dead; //0x0318
+	char pad_0319[75]; //0x0319
 	class Weapon* currentWeapon; //0x0364
 }; //Size: 0x0368
 
