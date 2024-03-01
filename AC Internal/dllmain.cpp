@@ -28,8 +28,8 @@ __declspec(naked) void triggerBotCodeCave() {
 	__asm {
 		call originalCallAddress;
 		pushad
-		mov isAimingEnemy, eax
-	} 
+			mov isAimingEnemy, eax
+	}
 
 	if (bTrigger) {
 		input = { 0 };
@@ -40,7 +40,7 @@ __declspec(naked) void triggerBotCodeCave() {
 			SendInput(1, &input, sizeof(INPUT));
 			wasFiring = true;
 		}
-		else if(wasFiring) {
+		else if (wasFiring) {
 			input.type = INPUT_MOUSE;
 			input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
 			SendInput(1, &input, sizeof(INPUT));
@@ -68,7 +68,7 @@ void hookDisplayNametags() {
 
 void unhookDisplayNametags() {
 	unsigned char* triggerHookLocation = (unsigned char*)(dwDisplayNametag + moduleBase);
-	
+
 	*triggerHookLocation = 0xe8;
 	*(unsigned char*)(triggerHookLocation + 1) = 0x1e;
 	*(unsigned char*)(triggerHookLocation + 2) = 0x5a;
@@ -80,7 +80,7 @@ void patchRecoil() {
 	unsigned char* recoilInstruction = (unsigned char*)(moduleBase + dwRecoilInstruction);
 	DWORD old;
 	VirtualProtect((void*)recoilInstruction, 3, PAGE_EXECUTE_READWRITE, &old);
-	
+
 	*recoilInstruction = 0xdd;
 	*(recoilInstruction + 1) = 0xd8;
 	*(recoilInstruction + 2) = 0x90;
@@ -92,11 +92,11 @@ void hackThread(HMODULE hModule) {
 		return;
 	}
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	AllocConsole();
 	FILE* f;
 	freopen_s(&f, "CONOUT$", "w", stdout);
-	#endif // DEBUG
+#endif // DEBUG
 
 	bTrigger = bHealth = bShield = bMagnet = bAmmo = bAimbot = bNoRecoil = false;
 
@@ -117,7 +117,7 @@ void hackThread(HMODULE hModule) {
 		uintptr_t ptrLocalPlayer = *(uintptr_t*)(moduleBase + dwLocalPlayer);
 		if (ptrLocalPlayer == NULL) {
 			continue;
-		} 
+		}
 
 		Player* me = (Player*)ptrLocalPlayer;
 
@@ -132,80 +132,84 @@ void hackThread(HMODULE hModule) {
 			me->grenades = 1337;
 		}
 
-		// TODO: entityList
-		//int iEntityListLength = *(int*)(moduleBase + dwEntityListLength);
+		if (Menu::Options::Aimbot::aimbot || Menu::Options::Misc::magnet) {
+			int playersCount = *(int*)(moduleBase + dwEntityListLength);
 
-		//if (iEntityListLength < 1) {
-		//	continue;
-		//}
+			if (playersCount < 1) {
+				continue;
+			}
 
-		//uintptr_t ptrEntityList = *(uintptr_t*)(moduleBase + dwEntityList);
+			uintptr_t ptrEntityList = *(uintptr_t*)(moduleBase + dwEntityList);
 
-		//float closestPlayer = -1.0;
-		//float closestYaw = 0;
-		//float closestPitch = 0;
+			float closestPlayer = -1.0;
+			float closestYaw = 0;
+			float closestPitch = 0;
 
-		//for (size_t i = 1; i < iEntityListLength; i++)
-		//{
-		//	uintptr_t ptrEntity = *(uintptr_t*)(ptrEntityList + (i * 4));
-		//	Player* player = (Player*)ptrEntity;
+			for (size_t i = 1; i < playersCount; i++)
+			{
 
-		//	if (!player || player->isDead) {
-		//		continue;
-		//	}
+				uintptr_t ptrEntity = *(uintptr_t*)(ptrEntityList + (i * 4));
+				Player* player = (Player*)ptrEntity;
 
-		//	if (bAimbot) {
-		//		// thanks https://gamehacking.academy/lesson/5/6
-		//		float absPosX = player->position.x - me->position.x;
-		//		float absPosY = player->position.y - me->position.y;
+				if (!player || player->dead) {
+					continue;
+				}
 
-		//		float distance = euclidean_distance(absPosX, absPosY);
+				if (Menu::Options::Aimbot::aimbot) {
+					// thanks https://gamehacking.academy/lesson/5/6
+					float absPosX = player->position.x - me->position.x;
+					float absPosY = player->position.y - me->position.y;
 
-		//		if (closestPlayer == -1.0 || distance < closestPlayer) {
-		//			closestPlayer = distance;
+					float distance = euclidean_distance(absPosX, absPosY);
 
-		//			float azimuthXY = atan2f(absPosY, absPosX);
-		//			float yaw = azimuthXY * (180.0 / M_PI);
+					if (closestPlayer == -1.0 || distance < closestPlayer) {
+						closestPlayer = distance;
 
-		//			if (absPosY < 0) {
-		//				absPosY *= -1;
-		//			}
+						float azimuthXY = atan2f(absPosY, absPosX);
+						float yaw = azimuthXY * (180.0 / M_PI);
 
-		//			if (absPosY < 5) {
-		//				if (absPosX < 0) {
-		//					absPosX *= -1;
-		//				}
-		//				absPosY = absPosX;
-		//			}
+						if (absPosY < 0) {
+							absPosY *= -1;
+						}
 
-		//			float absPosZ = player->position.z - me->position.z;
-		//			float azimuthZ = atan2f(absPosZ, absPosY);
-		//			float pitch = azimuthZ * (180 / M_PI);
+						if (absPosY < 5) {
+							if (absPosX < 0) {
+								absPosX *= -1;
+							}
+							absPosY = absPosX;
+						}
 
-		//			closestYaw = yaw + 90;
-		//			closestPitch = pitch;
-		//		}
-		//	}
+						float absPosZ = player->position.z - me->position.z;
+						float azimuthZ = atan2f(absPosZ, absPosY);
+						float pitch = azimuthZ * (180 / M_PI);
 
-		//	if (bMagnet) {
-		//		player->position.x = me->position.x + 5;
-		//		player->position.y = me->position.y + 5;
-		//		player->position.z = me->position.z;
-		//	}
-		//}
+						closestYaw = yaw + 90;
+						closestPitch = pitch;
+					}
+				}
 
-		//me->angle.x = closestYaw;
-		//me->angle.y = closestPitch;
+				if (Menu::Options::Misc::magnet) {
+					player->position.x = me->position.x + 5;
+					player->position.y = me->position.y + 5;
+					player->position.z = me->position.z;
+				}
+			}
+
+			if (Menu::Options::Aimbot::aimbot) {
+				me->angle.x = closestYaw;
+				me->angle.y = closestPitch;
+			}
+		}
 	}
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	if (f != NULL) {
 		fclose(f);
 	}
 
 	FreeConsole();
-	#endif // DEBUG
-	
+#endif // DEBUG
+
 	FreeLibraryAndExitThread(hModule, 0);
 }
 
