@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-uintptr_t dwLocalPlayer = 0x18AC00;
-uintptr_t dwEntityList = 0x10f4f8;
-uintptr_t dwEntityListLength = 0x10f500;
+uintptr_t dwLocalPlayer = 0x18ac00;
+uintptr_t dwEntityList = 0x18ac04;
+uintptr_t dwEntityListLength = 0x18ac0c;
 
 // Trigger
 uintptr_t dwDisplayNametag = 0xad9d;
