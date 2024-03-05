@@ -24,4 +24,15 @@ namespace Memory {
 
 		return old;
 	}
+
+	void PatchBytes(DWORD address, BYTE newBytes[]) {
+		DWORD old = Memory::Protect(address, sizeof(newBytes), PAGE_EXECUTE_READWRITE);
+
+		for (size_t i = 0; i < sizeof(newBytes); i++)
+		{
+			Memory::Write<BYTE>(address + i, newBytes[i]);
+		}
+
+		Memory::Protect(address, sizeof(newBytes), old);
+	}
 }

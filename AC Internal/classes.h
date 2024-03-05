@@ -64,3 +64,8 @@ class WeaponMagazine
 public:
 	int32_t ammo; //0x0000
 }; //Size: 0x0004
+
+// movss xmm2,xmm2
+BYTE recoilPatchBytes[] = { 0xf3, 0xf, 0x10, 0xd2, 0x90 };
+// movss dword [esi+0x38], xmm2
+BYTE recoilOriginalBytes[] = { 0xf3, 0xf, 0x11, 0x56, 0x38 };

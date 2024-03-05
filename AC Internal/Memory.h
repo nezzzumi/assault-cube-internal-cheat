@@ -7,4 +7,5 @@ namespace Memory {
 	template<typename T>
 	void Write(DWORD address, T value);
 	DWORD CodeCave(DWORD address, DWORD function, int size);
+	void PatchBytes(DWORD address, BYTE newBytes[]);
 }

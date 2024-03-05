@@ -9,13 +9,13 @@
 #include "opengl.h"
 #include "Menu.h"
 
+bool isRecoilPatched = false;
+
 LPCWSTR moduleName = L"ac_client.exe";
 DWORD moduleBase = (DWORD)GetModuleHandle(moduleName);
 
 int isAimingEnemy;
-bool wasFiring = false;
-
-bool bHealth, bShield, bMagnet, bAmmo, bTrigger, bAimbot, bNoRecoil;
+bool wasFiring, bTrigger = false;
 
 
 uintptr_t originalReturnAddress, originalCallAddress;
@@ -76,16 +76,6 @@ void unhookDisplayNametags() {
 	*(unsigned char*)(triggerHookLocation + 4) = 0x00;
 }
 
-void patchRecoil() {
-	unsigned char* recoilInstruction = (unsigned char*)(moduleBase + dwRecoilInstruction);
-	DWORD old;
-	VirtualProtect((void*)recoilInstruction, 3, PAGE_EXECUTE_READWRITE, &old);
-
-	*recoilInstruction = 0xdd;
-	*(recoilInstruction + 1) = 0xd8;
-	*(recoilInstruction + 2) = 0x90;
-}
-
 void hackThread(HMODULE hModule) {
 	if (!moduleBase) {
 		MessageBox(0, L"Module not found!", L"Warning", MB_OK | MB_ICONWARNING);
@@ -98,10 +88,7 @@ void hackThread(HMODULE hModule) {
 	freopen_s(&f, "CONOUT$", "w", stdout);
 #endif // DEBUG
 
-	bTrigger = bHealth = bShield = bMagnet = bAmmo = bAimbot = bNoRecoil = false;
-
-	/*hookDisplayNametags();
-	patchRecoil();*/
+	bTrigger = false;
 
 	Menu::Init();
 	OpenGL::Hook();
@@ -111,6 +98,7 @@ void hackThread(HMODULE hModule) {
 		if (GetAsyncKeyState(VK_END)) {
 			OpenGL::UnHook();
 			Menu::End();
+			if (isRecoilPatched) Memory::PatchBytes(dwRecoilInstruction, recoilOriginalBytes);
 			break;
 		}
 
@@ -120,6 +108,15 @@ void hackThread(HMODULE hModule) {
 		}
 
 		Player* me = (Player*)ptrLocalPlayer;
+
+		if (Menu::Options::Weapon::noRecoil && !isRecoilPatched) {
+			Memory::PatchBytes(dwRecoilInstruction, recoilPatchBytes);
+			isRecoilPatched = true;
+		}
+		else if (!Menu::Options::Weapon::noRecoil && isRecoilPatched) {
+			Memory::PatchBytes(dwRecoilInstruction, recoilOriginalBytes);
+			isRecoilPatched = false;
+		}
 
 		if (Menu::Options::Player::godMode) {
 			me->health = 1337;
