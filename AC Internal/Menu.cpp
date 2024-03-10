@@ -26,6 +26,11 @@ namespace Menu {
 		}
 		namespace Misc {
 			bool magnet = false;
+
+			bool isPositioned = false;
+			float magnetPosX = NULL;
+			float magnetPosY = NULL;
+			float magnetPosZ = NULL;
 		}
 	}
 
@@ -126,9 +131,37 @@ namespace Menu {
 				ImGui::EndTabItem();
 			}
 			if (ImGui::BeginTabItem("Misc")) {
+				ImGui::TableNextColumn(); ImGui::Checkbox("Magnetic", &Menu::Options::Misc::magnet);
+
+				if (Menu::Options::Misc::magnet) {
+					const float step = 1.0f;
+					int flags = 0;
+
+					if (!Menu::Options::Misc::isPositioned) {
+						flags = ImGuiInputTextFlags_ReadOnly;
+					}
+
+
+					ImGui::Indent();
+					ImGui::InputScalar("Position X", ImGuiDataType_Float, &Menu::Options::Misc::magnetPosX, &step, NULL, NULL, flags);
+					ImGui::InputScalar("Position Y", ImGuiDataType_Float, &Menu::Options::Misc::magnetPosY, &step, NULL, NULL, flags);
+					ImGui::InputScalar("Position Z", ImGuiDataType_Float, &Menu::Options::Misc::magnetPosZ, &step, NULL, NULL, flags);
+
+					if (ImGui::Button("Reset Position")) {
+						Menu::Options::Misc::isPositioned = false;
+					}
+					ImGui::SameLine();
+					if (ImGui::Button("Save Position")) {
+						Menu::Options::Misc::isPositioned = true;
+					}
+
+				}
+				else {
+					Menu::Options::Misc::isPositioned = false;
+				}
+
 				if (ImGui::BeginTable("split", 3))
 				{
-					ImGui::TableNextColumn(); ImGui::Checkbox("Magnet", &Menu::Options::Misc::magnet);
 					ImGui::EndTable();
 				}
 				ImGui::EndTabItem();

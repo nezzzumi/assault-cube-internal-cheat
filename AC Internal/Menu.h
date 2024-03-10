@@ -19,6 +19,11 @@ namespace Menu {
 		}
 		namespace Misc {
 			extern bool magnet;
+
+			extern bool isPositioned;
+			extern float magnetPosX;
+			extern float magnetPosY;
+			extern float magnetPosZ;
 		}
 	}
 

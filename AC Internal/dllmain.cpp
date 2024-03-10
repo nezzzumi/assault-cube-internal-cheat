@@ -186,9 +186,15 @@ void hackThread(HMODULE hModule) {
 				}
 
 				if (Menu::Options::Misc::magnet) {
-					player->position.x = me->position.x + 5;
-					player->position.y = me->position.y + 5;
-					player->position.z = me->position.z;
+					if (!Menu::Options::Misc::isPositioned) {
+						Menu::Options::Misc::magnetPosX = me->position.x + 5;
+						Menu::Options::Misc::magnetPosY = me->position.y + 5;
+						Menu::Options::Misc::magnetPosZ = me->position.z;
+					}
+
+					player->position.x = Menu::Options::Misc::magnetPosX;
+					player->position.y = Menu::Options::Misc::magnetPosY;
+					player->position.z = Menu::Options::Misc::magnetPosZ;
 				}
 			}
 
